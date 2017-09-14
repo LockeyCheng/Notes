@@ -338,3 +338,103 @@
                     alias /images;#当在网页中加载一张图片时可以这样写<img src="/images/pic.png">，实际获取
                 的是根目录下的images目录中的图片，而不是网站根目录下的。
                 }
+
+### 9. 配置Nginx支持php
+在配置Nginx支持php支持php之前需要对php-fpm有所了解：
+
+	PHP-FPM是一个PHP FastCGI管理器，是只用于PHP的,可以在 http://php-fpm.org/download下载得到.
+
+	PHP-FPM其实是PHP源代码的一个补丁，旨在将FastCGI进程管理整合进PHP包中。必须将它patch到你的PHP源代码中，在编译安装PHP后才可以使用。
+
+	新版PHP已经集成php-fpm了，不再是第三方的包了，推荐使用。PHP-FPM提供了更好的PHP进程管理方式，可以有效控制内存和进程、可以平滑重载PHP配置，比spawn-fcgi具有更多优点，所以被PHP官方收录了。在./configure的时候带 –enable-fpm参数即可开启PHP-FPM
+
+9.1 编译安装php，并且启用php-fpm
+
+下载以及编译安装的过程不再详述，这里只讲一个常见编译安装错误的解决方法：
+
+configure: error: mcrypt.h not found. Please reinstall libmcrypt
+
+其实也就是缺少依赖模块，但是这个模块一般的路子不好安装，需要下载源码进行编译安装
+
+解决方法步骤：
+
+	wget ftp://mcrypt.hellug.gr/pub/crypto/mcrypt/attic/libmcrypt/libmcrypt-2.5.7.tar.gz
+
+	gunzip libmcrypt-2.5.7.tar.gz
+	tar -xf libmcrypt-2.5.7.tar
+	cd libmcrypt-2.5.7/
+	./configure --prefix=/usr/local/libmcrypt
+	make && make install
+
+**在php的配置中需要指明启用php-fpm(此动作仅限已经集成php-fpm的新版PHP，老旧版本需要单独安装)**
+
+	./configure --prefix=/usr/local/php --enable-fpm
+
+9.2 配置php-fpm
+
+第一步：将安装好的php目录下的php-fpm.conf.default模板配置拷贝一份当做php-fpm的配置文件
+
+    cd /usr/local/php/etc
+    cp php-fpm.d/www.conf.default www.conf
+    cp php-fpm.conf.default /etc/php-fpm.conf
+第二步：编辑配置文件
+
+    vim /etc/php-fpm.conf
+    #以下内容中未注释为新加或者消注
+
+    [global]
+    ; Pid file
+    ; Note: the default prefix is /usr/local/php/var
+    ; Default Value: none
+    pid = run/php-fpm.pid   #########
+    user = www   #########
+    group = www   #########
+
+
+9.3 配置nginx对php的支持
+     vim /usr/local/nginx/conf/nginx.conf
+
+     修改内容部分如下：
+
+     	 2 user  www www;
+     	 #指明用户和组
+
+     	 43         location / {#指定网站根目录
+     	 44             root   /nginxweb;
+     	 45             index index.php  index.html index.htm;#添加php默认页
+     	 46         }
+
+
+
+     	65         location ~ \.php$ {##重要的配置
+     	 66             root           html;
+     	 67             fastcgi_pass   127.0.0.1:9000;
+     	 68             fastcgi_index  index.php;
+     	 69             fastcgi_param  SCRIPT_FILENAME /nginxweb/$fastcgi_script_name;
+     	 #/nginxweb/为你自己的网站发布目录，我的为/nginxweb/
+     	 70                 # /scripts$fastcgi_script_name;
+     	 71             include        fastcgi_params;
+     	 72         }
+
+     配置完成后在网站发布目录下新建一个php文件用来测试：
+
+     	[root@lockey nginxweb]# cat index.php
+     	<?php
+     	    echo 'goooooooooooood';
+     	    echo phpinfo();
+     	?>
+     	[root@lockey nginxweb]#
+
+9.4   重启php-fpm与nginx
+
+     	/usr/sbin/php-fpm
+     	/usr/local/nginx/sbin/nginx -s reload
+     注意如果在启动php-fpm时出现以下错误：
+
+     	failed to load configuration file '/usr/local/php/etc/php-fpm.conf'
+     	原因为没有拷贝配置文件
+
+     	ERROR: [pool www] cannot get uid for user 'www'
+     	原因是没有添加用户，或者说配置中没有指定用户和组信息
+
+9.5 访问http://你的服务器ip/index.php**
