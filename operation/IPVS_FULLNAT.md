@@ -13,14 +13,20 @@ lip(local ip address), cip(client ip address), vip(virtual ip address), rip(real
 2.数据包发送出去的时候，目标ip更换为client ip，源ip更换为vip；
 性能：和NAT比，正常转发性能下降<10%；
 
-**SYNPROXY: 抵御同步泛滥（也叫拒绝服务攻击DDoS）攻击**
+FULLNAT一个最大的问题是：RealServer无法获得用户IP；为了解决这个问题我们提出了TOA的概念，主要原理是：将client address放到了TCP Option里面带给后端RealServer，RealServer上通过toa内核模块hack了getname函数，给用户态返回TCP Option中的client ip
 
-基于SYN cookie
+**SYNPROXY（基于SYN cookie）: 抵御同步泛滥（也叫拒绝服务攻击DDoS）攻击**
+
+LVS可以防御DDOS 4层标志位攻击，其中，synproxy是用于防御synflood攻击的模块；
+
+Synproxy实现的主要原理：参照linux tcp协议栈中syncookies的思想，LVS-构造特殊seq的synack包，验证ack包中ack_seq是否合法-实现了TCP三次握手代理；
+
+简化一点说，就是client和LVS间建立3次握手，成功后，LVS再和RS建立3次握手；
 
 Linux kernel 2.6.32 IPVS下的FullNAT和SYNPROXY程序代码 是由阿里的吴家明和360的陈建以及淘宝朱顺明,在阿里章文嵩的一些建议下写成的。程序代码的写成也受到了源NAT和SYNPROXY 思想的影响。
 
 
-FullNAT和 SYNPROXY支持被吴家明加到了keepalived/ipvsadm
+FullNAT和 SYNPROXY支持后被吴家明加到了keepalived/ipvsadm，有些大牛还是需要膜拜一下的！
 
 ## 编译
 ### 1. LVS Kernel
