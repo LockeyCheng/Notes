@@ -9,6 +9,9 @@ nginx在启动后，在unix系统中会以daemon（守护进程）的方式在�
 Daemon()程序是一直运行的服务端程序，又称为守护进程。通常在系统后台运行，没有控制终端，不与前台交互，Daemon程序一般作为系统服务使用。Daemon是长时间运行的进程，通常在系统启动后就运行，在系统关闭时才结束。一般都作为服务程序使用，等待客户端程序与它通信。
 
 ### Nginx进程模型
+
+![这里写图片描述](https://github.com/LockeyCheng/Notes/blob/master/operation/pictures/ng-process-model.png)
+
 模型图在同目录pictures中，名为ng-process-model.png
 
 Nginx默认采用多进程工作方式，Nginx启动后，会运行一个master进程和多个worker进程。master进程主要用来管理worker进程，包含：接收来自外界的信号，向各worker进程发送信号，监控worker进程的运行状态，当worker进程退出后(异常情况下)，会自动重新启动新的worker进程。而基本的网络事件，则是放在worker进程中来处理了。多个worker进程之间是对等的，他们同等竞争来自客户端的请求，各进程互相之间是独立的。一个请求，只可能在一个worker进程中处理，一个worker进程，不可能处理其它进程的请求。
@@ -48,6 +51,7 @@ Nginx定时器
 由于epoll_wait等函数在调用的时候是可以设置一个超时时间的，所以nginx借助这个超时时间来实现定时器。nginx里面的定时器事件是放在一颗维护定时器的红黑树里面，每次在进入epoll_wait前，先从该红黑树里面拿到所有定时器事件的最小时间，在计算出epoll_wait的超时时间后进入epoll_wait。所以，当没有事件产生，也没有中断信号时，epoll_wait会超时，也就是说，定时器事件到了。这时，nginx会检查所有的超时事件，将他们的状态设置为超时，然后再去处理网络事件。由此可以看出，当我们写nginx代码时，在处理网络事件的回调函数时，通常做的第一个事情就是判断超时，然后再去处理网络事件。
 
 ### Nginx处理HTTP请求流程
+![这里写图片描述](https://github.com/LockeyCheng/Notes/blob/master/operation/pictures/ng-http-process.png)
 模型图在同目录pictures中，名为ng-http-process.png
 
 http请求是典型的请求-响应类型的的网络协议。http是文件协议，所以我们在分析请求行与请求头，以及输出响应行与响应头，往往是一行一行的进行处理。通常在一个连接建立好后，读取一行数据，分析出请求行中包含的method、uri、http_version信息。然后再一行一行处理请求头，并根据请求method与请求头的信息来决定是否有请求体以及请求体的长度，然后再去读取请求体。得到请求后，我们处理请求产生需要输出的数据，然后再生成响应行，响应头以及响应体。在将响应发送给客户端之后，一个完整的请求就处理完了。
