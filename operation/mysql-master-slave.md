@@ -304,10 +304,12 @@ mysql> show processlist；
 
 mysql> show variables like 'have_dynamic_loading';
 **确保value为YES**
+
 ![这里写图片描述](http://img.blog.csdn.net/20170928205611213?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTG9ja2V5MjM=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
-**注意：**半同步复制模式必须在主服务器和从服务器同时中开启，否则将会默认为异步复制模式。
+**注意：**
+半同步复制模式必须在主服务器和从服务器同时中开启，否则将会默认为异步复制模式。
 
 半同步复制需要安装插件，而插件的位置如下：
 ![这里写图片描述](http://img.blog.csdn.net/20170928205813612?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTG9ja2V5MjM=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
