@@ -172,6 +172,16 @@ vim /etc/zabbix/zabbix_server.conf
 	[root@lockey41 web]# pwd
 	/etc/zabbix/web
 	[root@lockey41 web]# vim zabbix.conf.php
+  <?php
+  // Zabbix GUI configuration file.
+  global $DB;
+
+  $DB['TYPE']     = 'MYSQL';
+  $DB['SERVER']   = '192.168.0.41';####
+  $DB['PORT']     = '4000';####
+  $DB['DATABASE'] = 'zabbix';
+  $DB['USER']     = 'lockey';
+  $DB['PASSWORD'] = 'lockey23';
 
 ![这里写图片描述](http://img.blog.csdn.net/20171012234832727?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTG9ja2V5MjM=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 如果上边的配置没有修改则会出现以下错误：
