@@ -31,6 +31,7 @@ MFS可支持文件自动备份的功能，提高可用性和高扩展性。Mogil
 ### 1.cobbler1，cobbler2安装测试mfs-master 和 cgi-server(两台主机操作相同)
 
 安装包本人已经上传到[百度云盘](https://pan.baidu.com/s/1gfD14f5)，用到的rpm包如下：
+
 ![这里写图片描述](http://img.blog.csdn.net/20171023221612210?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvTG9ja2V5MjM=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
